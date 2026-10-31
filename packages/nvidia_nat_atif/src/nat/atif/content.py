@@ -154,7 +154,9 @@ def normalize_content_part(part: Any) -> Any:
     part_type = part.get("type")
     if part_type == "text":
         text_val = part.get("text")
-        return {"type": "text", "text": text_val if text_val is not None else ""}
+        if text_val is None:
+            return part
+        return {"type": "text", "text": text_val}
 
     if part_type == "image_url":
         image_url_val = part.get("image_url")

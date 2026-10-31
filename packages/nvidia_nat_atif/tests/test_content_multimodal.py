@@ -146,10 +146,25 @@ def test_normalize_content_part_text() -> None:
 
 
 def test_normalize_content_part_text_default_empty_string() -> None:
+    # A text part missing the 'text' key is returned unchanged so ContentPart validation can reject it
     part = {"type": "text"}
     normalized = normalize_content_part(part)
-    assert normalized == {"type": "text", "text": ""}
-    validated = ContentPart(**normalized)
+    assert normalized == part
+    with pytest.raises(pydantic.ValidationError, match="'text' field is required when type='text'"):
+        ContentPart(**normalized)
+
+    # A text part with explicit text=None is also returned unchanged
+    part_none = {"type": "text", "text": None}
+    normalized_none = normalize_content_part(part_none)
+    assert normalized_none == part_none
+    with pytest.raises(pydantic.ValidationError, match="'text' field is required when type='text'"):
+        ContentPart(**normalized_none)
+
+    # Explicit empty string is preserved and accepted
+    part_empty = {"type": "text", "text": ""}
+    normalized_empty = normalize_content_part(part_empty)
+    assert normalized_empty == {"type": "text", "text": ""}
+    validated = ContentPart(**normalized_empty)
     assert validated.text == ""
 
 
